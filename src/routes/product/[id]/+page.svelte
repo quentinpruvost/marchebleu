@@ -1,4 +1,5 @@
 <script>
+  import { dev } from '$app/environment';
   import { page } from '$app/stores';
   import { packs } from '$lib/data/packs.js';
   import Reveal from '$lib/ui/Reveal.svelte';
@@ -33,7 +34,12 @@
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert('只今、決済を一時的に承れません。しばらく経ってからお試しください。');
+        console.error('[checkout]', response.status, data);
+        if (dev && data?.error) {
+          alert(`決済エラー（開発用）: ${data.error}`);
+        } else {
+          alert('只今、決済を一時的に承れません。しばらく経ってからお試しください。');
+        }
       }
     } catch (err) {
       console.error(err);

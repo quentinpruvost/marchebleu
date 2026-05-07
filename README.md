@@ -36,3 +36,10 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Vercel + Stripe
+
+Variables d’environnement Vercel (puis **Redeploy**) :
+
+- **`STRIPE_SECRET_KEY`** : clé secrète Stripe.
+- **`PUBLIC_SITE_URL`** : ex. `https://marchebleu.jp` sans slash final — utile si l’API checkout ne reçoit pas d’en-tête `Origin` (URLs `success_url` / `cancel_url` valides pour Stripe).
