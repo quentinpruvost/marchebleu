@@ -1,11 +1,65 @@
 <script>
+  import { page } from '$app/stores';
   import "../app.css";
+  import { organizationSameAs } from '$lib/social/profiles.js';
+
+  /** @type {{ site?: string; canonicalUrl?: string }} */
+  export let data;
+
+  $: canonicalUrl = data?.canonicalUrl ?? "";
+  $: site = data?.site ?? "";
+  /**
+   * @param {string} pathname
+   * @returns {boolean}
+   */
+  function isFrenchPath(pathname) {
+    return pathname === "/fr" || pathname.startsWith("/fr/");
+  }
+  $: ogLocaleDefault = isFrenchPath($page.url.pathname) ? "fr_FR" : "ja_JP";
+  $: organizationLdJson =
+    site &&
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Marché Bleu",
+      url: site,
+      sameAs: organizationSameAs,
+      logo: `${site}/1774016218283.jpg`,
+      slogan: "南仏モンテリマールから、フランスの美食セレクションを日本へ。",
+      areaServed: "JP",
+      foundingLocation: { "@type": "Place", addressLocality: "Montélimar", addressCountry: "FR" },
+      founders: [{ "@type": "Person", name: "Quentin" }, { "@type": "Person", name: "Lydia" }],
+      identifiers: [{ "@type": "PropertyValue", propertyID: "SIREN", value: "100 160 043" }]
+    });
+
+  $: robotsMeta = $page.url.pathname.startsWith('/success')
+    ? 'noindex, nofollow'
+    : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 
   let scrollY = 0;
   $: headerCompact = scrollY > 28;
 </script>
 
 <svelte:window bind:scrollY />
+
+<svelte:head>
+  {#if canonicalUrl}
+    <link rel="canonical" href={canonicalUrl} />
+  {/if}
+  {#if site}
+    <meta property="og:site_name" content="Marché Bleu" />
+    <meta property="og:locale" content={ogLocaleDefault} />
+  {/if}
+  <meta name="theme-color" content="#003366" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="robots" content={robotsMeta} />
+  <meta name="author" content="Marché Bleu · Quentin & Lydia" />
+
+  {#if organizationLdJson}
+    <svelte:element this={'script'} type="application/ld+json">{organizationLdJson}</svelte:element>
+  {/if}
+</svelte:head>
 
 <div
   class="app-shell bg-[#F7F5F0] text-[#222] font-sans selection:bg-marche-bleu selection:text-white text-[15px]"
@@ -24,19 +78,17 @@
         ? 'py-3 md:py-3.5'
         : 'py-7 md:py-8'}"
     >
-      <a href="/" class="group flex flex-col items-center">
+      <a href="/" class="group flex flex-col items-center" aria-label="Marché Bleu — ホーム">
         <span
           class="text-stone-500 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] {headerCompact
             ? 'text-[9px] tracking-[0.36em] opacity-75'
             : 'text-[10px] tracking-[0.42em]'}"
           >セレクション · Marché Bleu</span>
-        <h1
+        <span
           class="font-serif text-marche-bleu transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:tracking-normal {headerCompact
             ? 'mt-0 text-2xl tracking-tight md:text-3xl'
             : 'mt-1 text-4xl tracking-tight transition-all md:text-5xl'}"
-        >
-          Marché Bleu
-        </h1>
+          >Marché Bleu</span>
         <div
           class="mx-auto mt-2 h-px bg-marche-bleu transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100 {headerCompact
             ? 'w-10 scale-x-50 opacity-60 group-hover:scale-x-100'
@@ -50,10 +102,33 @@
       >
         Quentin & Lydia — 暮らす街で信じる味だけを
       </p>
+      {#if !headerCompact}
+        <nav
+          aria-label={isFrenchPath($page.url.pathname) ? 'Navigation' : '主要ナビゲーション'}
+          class="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] font-medium uppercase tracking-[0.22em] text-stone-500"
+        >
+          {#if !isFrenchPath($page.url.pathname)}
+            <a href="/guides" lang="ja" class="hover:text-marche-bleu{$page.url.pathname.startsWith('/guides') ? ' text-marche-bleu' : ''}"
+              >ガイド</a>
+            <a href="/faq" lang="ja" class="hover:text-marche-bleu{$page.url.pathname.startsWith('/faq') ? ' text-marche-bleu' : ''}"
+              >FAQ</a>
+          {:else}
+            <a href="/fr/guides" lang="fr" class="hover:text-marche-bleu{$page.url.pathname.startsWith('/fr/guides') ? ' text-marche-bleu' : ''}"
+              >Guides</a>
+            <a href="/fr/faq" lang="fr" class="hover:text-marche-bleu{$page.url.pathname.startsWith('/fr/faq') ? ' text-marche-bleu' : ''}"
+              >FAQ</a>
+          {/if}
+          {#if !isFrenchPath($page.url.pathname)}
+            <a href="/fr" lang="fr" class="border-b border-transparent hover:border-marche-bleu hover:text-marche-bleu">FR</a>
+          {:else}
+            <a href="/" lang="ja" class="border-b border-transparent hover:border-marche-bleu hover:text-marche-bleu">日本語サイト</a>
+          {/if}
+        </nav>
+      {/if}
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4">
+  <main id="main-content" class="max-w-6xl mx-auto px-4">
     <slot />
   </main>
 
@@ -87,7 +162,33 @@
         </div>
       </div>
       
-      <div class="flex flex-wrap justify-center gap-6 text-[11px] text-stone-600 font-medium">
+      <div class="flex flex-wrap justify-center gap-x-7 gap-y-3 text-[11px] text-stone-600 font-medium">
+        <a href="/guides" lang="ja" class="hover:text-marche-bleu transition-colors border-b border-transparent hover:border-marche-bleu">
+          ガイド · Guides
+        </a>
+        <a href="/faq" lang="ja" class="hover:text-marche-bleu transition-colors border-b border-transparent hover:border-marche-bleu">
+          FAQ
+        </a>
+        <a href="/fr" lang="fr" class="hover:text-marche-bleu transition-colors border-b border-transparent hover:border-marche-bleu">
+          Français · 仏語版
+        </a>
+      </div>
+      <div
+        class="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 border-t border-stone-200/80 pt-8 text-[10px] uppercase tracking-[0.2em] text-stone-500"
+      >
+        <a href="https://www.instagram.com/marchebleu_france/" rel="me noopener noreferrer" class="hover:text-marche-bleu">
+          Instagram
+        </a>
+        <a href="https://x.com/marchebleuJP" rel="me noopener noreferrer" class="hover:text-marche-bleu">X</a>
+        <a href="https://www.tiktok.com/@marchebleujp" rel="me noopener noreferrer" class="hover:text-marche-bleu">
+          TikTok
+        </a>
+        <a
+          href="https://www.facebook.com/profile.php?id=61589596462417"
+          rel="me noopener noreferrer"
+          class="hover:text-marche-bleu">Facebook</a>
+      </div>
+      <div class="mt-8 flex flex-wrap justify-center gap-6 text-[11px] text-stone-600 font-medium">
         <a href="/legal/tokushoho" class="hover:text-marche-bleu transition-colors border-b border-transparent hover:border-marche-bleu">特定商取引法</a>
         <a href="/legal/privacy" class="hover:text-marche-bleu transition-colors border-b border-transparent hover:border-marche-bleu">プライバシーポリシー</a>
       </div>

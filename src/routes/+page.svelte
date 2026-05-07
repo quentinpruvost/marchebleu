@@ -2,6 +2,10 @@
   import { packs } from '$lib/data/packs.js';
   import Reveal from '$lib/ui/Reveal.svelte';
   import ParallaxFrame from '$lib/ui/ParallaxFrame.svelte';
+  import { absoluteAsset } from '$lib/seo/siteOrigin.js';
+
+  /** @type {{ site?: string; canonicalUrl?: string }} */
+  export let data;
 
   const availablePacks = packs.filter((pack) => pack.status === 'available');
   const mainPack = availablePacks[0] || packs[0];
@@ -9,7 +13,86 @@
   const heroImage = mainPack.gallery?.[0] || mainPack.image;
   const storyImages = (mainPack.gallery || []).slice(1, 5);
   const moodImages = (mainPack.gallery || []).slice(5, 11);
+
+  const homeTitle =
+    'Marché Bleu | 南仏モンテリマール発・フランス美食セレクション直送／ヌガー・プロヴァンス';
+  const homeDescription =
+    '南フランス・モンテリマールより、職人手仕事のフランスグルメを日本へ。署名ボックスでのお取り寄せ、Stripe安心決済、追跡付き直送、税込・国際送料込みでお届け。';
+
+  $: site = data.site ?? '';
+  $: canonicalUrl = data.canonicalUrl ?? '';
+  $: ogImage = site ? absoluteAsset(site, '/1774016218283.jpg') : '';
+  $: websiteLdJson =
+    site &&
+    JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      '@id': `${site}/#website`,
+      name: 'Marché Bleu',
+      url: site,
+      inLanguage: 'ja-JP',
+      publisher: {
+        '@type': 'Organization',
+        name: 'Marché Bleu',
+        url: site
+      }
+    });
+
+  $: itemListLdJson =
+    site &&
+    packs.length > 0 &&
+    JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Marché Bleu コレクション',
+      itemListElement: packs.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: p.name,
+        url: `${site}/product/${p.id}`
+      }))
+    });
 </script>
+
+<svelte:head>
+  <title>{homeTitle}</title>
+  <meta name="description" content={homeDescription} />
+  <meta
+    name="keywords"
+    content="フランスお取り寄せ,Montélimar,モンテリマール,ヌガー,プロヴァンス,Marché Bleu,フランス菓子,ギフトボックス"
+  />
+
+  {#if canonicalUrl}
+    <meta property="og:url" content={canonicalUrl} />
+  {/if}
+  <meta property="og:title" content={homeTitle} />
+  <meta property="og:description" content={homeDescription} />
+  <meta property="og:type" content="website" />
+  {#if ogImage}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content="Marché Bleu セレクション — フランスグルメギフトボックス" />
+  {/if}
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={homeTitle} />
+  <meta name="twitter:description" content={homeDescription} />
+  {#if ogImage}
+    <meta name="twitter:image" content={ogImage} />
+  {/if}
+
+  {#if site}
+    <link rel="alternate" hreflang="ja" href={`${site}/`} />
+    <link rel="alternate" hreflang="fr-FR" href={`${site}/fr`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}/`} />
+  {/if}
+
+  {#if websiteLdJson}
+    <svelte:element this={'script'} type="application/ld+json">{websiteLdJson}</svelte:element>
+  {/if}
+  {#if itemListLdJson}
+    <svelte:element this={'script'} type="application/ld+json">{itemListLdJson}</svelte:element>
+  {/if}
+</svelte:head>
 
 <section class="pt-10 pb-20 md:pt-14 md:pb-24">
   <div class="max-w-6xl mx-auto">
@@ -20,10 +103,10 @@
         >
           ジャパン向け · 手仕事セレクション
         </span>
-        <h2 class="text-4xl md:text-6xl font-serif text-stone-800 leading-[1.15]">
+        <h1 class="text-4xl md:text-6xl font-serif text-stone-800 leading-[1.15]">
           静かな贅沢を、<br />
           箱ひとつに整えて。
-        </h2>
+        </h1>
         <p class="text-stone-600 leading-[1.85] text-sm md:text-base max-w-xl">
           南仏の陽光と、職人の手元。モンテリマールの暮らしのなかで、私たちが本当に手放したくない味だけを。在庫を抱えず、ご注文のたびに街へ。一本の道のりを、ふたりで歩みます。
         </p>
@@ -93,7 +176,7 @@
   </div>
 </section>
 
-<section class="py-20 bg-white -mx-4 px-4 border-y border-stone-200/70">
+<section id="collections" class="py-20 bg-white -mx-4 px-4 border-y border-stone-200/70">
   <div class="max-w-6xl mx-auto">
     <Reveal as="header" extraClass="text-center mb-12">
       <h3 class="text-[11px] font-medium tracking-[0.5em] text-terre-cuite">COLLECTION PLAN</h3>
@@ -198,6 +281,22 @@
           ボックスの全貌を見る
         </a>
       </Reveal>
+    </div>
+  </div>
+</section>
+
+<section class="-mx-4 border-y border-stone-200/60 bg-[#FAF9F6] px-4 py-14 md:py-16">
+  <div class="max-w-3xl mx-auto px-4 text-center md:px-6">
+    <h3 class="text-[11px] font-medium tracking-[0.45em] text-terre-cuite">READ</h3>
+    <p class="mt-3 font-serif text-2xl text-stone-800 md:text-3xl leading-snug">産地ガイド</p>
+    <p class="mt-4 text-sm leading-relaxed text-stone-600">
+      ヌガー、プロヴァンス、キャリソン。<br class="hidden sm:inline" />
+      フランス側のコンテキストを日本語でもフランス語でも読めるようにしています（SEOにも有益です）。
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-5 text-[11px] font-semibold uppercase tracking-[0.2em]">
+      <a href="/guides" class="border-b border-marche-bleu/40 pb-0.5 text-marche-bleu hover:border-marche-bleu">一覧を見る</a>
+      <a href="/fr/guides" lang="fr" class="text-stone-500 hover:text-marche-bleu">Voir en français</a>
+      <a href="/faq" class="text-stone-500 hover:text-marche-bleu">FAQ</a>
     </div>
   </div>
 </section>

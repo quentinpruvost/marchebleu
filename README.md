@@ -43,3 +43,12 @@ Variables d’environnement Vercel (puis **Redeploy**) :
 
 - **`STRIPE_SECRET_KEY`** : clé secrète Stripe.
 - **`PUBLIC_SITE_URL`** : ex. `https://marchebleu.jp` sans slash final — utile si l’API checkout ne reçoit pas d’en-tête `Origin` (URLs `success_url` / `cancel_url` valides pour Stripe).
+
+## SEO (résumé technique)
+
+- **Canonical + Open Graph** : calculés dans `src/routes/+layout.js` à partir de `PUBLIC_SITE_URL` (fallback `https://marchebleu.jp`).
+- **Sitemap dynamique** : `GET /sitemap.xml` (URL + images produits). **Robots** : `GET /robots.txt` référence ce sitemap et exclut `/api/`.
+- **Données structurées** : `Organization` + `WebSite` + `ItemList` (accueil) ; `Product` + `BreadcrumbList` (fiches).
+- **Post-paiement** : `/success` est en **`noindex`** (évite le bruit index / contenu dupliqué).
+
+Après mise en prod : [Google Search Console](https://search.google.com/search-console) → propriété domaine → soumettre le sitemap `https://ton-domaine/sitemap.xml`.

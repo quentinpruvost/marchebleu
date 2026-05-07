@@ -1,9 +1,30 @@
+<script>
+  import { absoluteAsset } from '$lib/seo/siteOrigin.js';
+
+  /** @type {{ site?: string; canonicalUrl?: string }} */
+  export let data;
+
+  $: ogImage = data.site ? absoluteAsset(data.site, '/1774016218283.jpg') : '';
+</script>
+
 <svelte:head>
   <title>特定商取引法に基づく表記 | Marché Bleu</title>
   <meta
     name="description"
     content="Marché Bleu の特定商取引法に基づく表示（販売業者・所在地・返品条件など）。"
   />
+  {#if data.canonicalUrl}
+    <meta property="og:url" content={data.canonicalUrl} />
+  {/if}
+  <meta property="og:title" content="特定商取引法に基づく表記 | Marché Bleu" />
+  <meta
+    property="og:description"
+    content="Marché Bleu の特定商取引法に基づく表示（販売業者・所在地・返品条件など）。"
+  />
+  <meta property="og:type" content="website" />
+  {#if ogImage}
+    <meta property="og:image" content={ogImage} />
+  {/if}
 </svelte:head>
 
 <div class="mx-auto max-w-3xl py-14 pb-24 md:py-20">
