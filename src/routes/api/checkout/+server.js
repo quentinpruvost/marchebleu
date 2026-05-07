@@ -1,12 +1,20 @@
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { json } from '@sveltejs/kit';
 import { packs } from '$lib/data/packs.js';
 
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+let stripe;
 
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request }) {
+    if (!env.STRIPE_SECRET_KEY) {
+        return json({ error: 'Configuration Stripe manquante.' }, { status: 500 });
+    }
+
+    if (!stripe) {
+        stripe = new Stripe(env.STRIPE_SECRET_KEY);
+    }
+
     const { packId } = await request.json();
     const pack = packs.find((item) => item.id === packId);
 
